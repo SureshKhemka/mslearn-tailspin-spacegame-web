@@ -1,0 +1,193 @@
+@model TailSpin.SpaceGame.Web.Models.MedicalTest.TestSearchQuery
+@{
+    ViewData["Title"] = "Medical Test Price Comparison";
+
+    var popularTests = new[]
+    {
+        "Complete Blood Count", "Lipid Profile", "Thyroid Panel",
+        "HbA1c", "Liver Function Test", "Kidney Function Test",
+        "Vitamin D", "Vitamin B12", "Blood Sugar Fasting", "Dengue NS1 Antigen"
+    };
+
+    var indianCities = new[]
+    {
+        "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai",
+        "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow",
+        "Gurgaon", "Noida", "Coimbatore", "Kochi", "Chandigarh"
+    };
+}
+
+<section class="medical-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 text-center">
+                <div class="medical-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="80" height="80">
+                        <circle cx="32" cy="32" r="30" fill="#e8f5e9" stroke="#43a047" stroke-width="2"/>
+                        <rect x="28" y="14" width="8" height="36" rx="3" fill="#43a047"/>
+                        <rect x="14" y="28" width="36" height="8" rx="3" fill="#43a047"/>
+                    </svg>
+                </div>
+                <h1 class="medical-title">Medical Test Price Comparison</h1>
+                <p class="medical-subtitle">
+                    Compare prices for medical tests across <strong>Tata 1mg</strong>,
+                    <strong>PharmEasy</strong>, <strong>Orange Health</strong>, and
+                    <strong>Apollo 24*7</strong> — and find the cheapest option near you.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="medical-search">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default medical-panel">
+                    <div class="panel-body">
+                        <form asp-controller="MedicalTest" asp-action="Compare" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="form-group @(ViewData.ModelState["TestNames"]?.Errors.Count > 0 ? "has-error" : "")">
+                                <label for="TestNames" class="control-label medical-label">
+                                    Medical Tests
+                                    <small class="text-muted">(comma-separated)</small>
+                                </label>
+                                <textarea id="TestNames"
+                                          name="TestNames"
+                                          class="form-control medical-textarea"
+                                          rows="3"
+                                          placeholder="e.g. CBC, Lipid Profile, Vitamin D">@Model?.TestNames</textarea>
+                                @if (ViewData.ModelState["TestNames"]?.Errors.Count > 0)
+                                {
+                                    <span class="help-block">@ViewData.ModelState["TestNames"].Errors[0].ErrorMessage</span>
+                                }
+                            </div>
+
+                            <div class="form-group @(ViewData.ModelState["Location"]?.Errors.Count > 0 ? "has-error" : "")">
+                                <label for="Location" class="control-label medical-label">Your City</label>
+                                <input type="text"
+                                       id="Location"
+                                       name="Location"
+                                       class="form-control"
+                                       list="cityList"
+                                       placeholder="e.g. Mumbai, Delhi, Bangalore"
+                                       value="@Model?.Location" />
+                                <datalist id="cityList">
+                                    @foreach (var city in indianCities)
+                                    {
+                                        <option value="@city" />
+                                    }
+                                </datalist>
+                                @if (ViewData.ModelState["Location"]?.Errors.Count > 0)
+                                {
+                                    <span class="help-block">@ViewData.ModelState["Location"].Errors[0].ErrorMessage</span>
+                                }
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg btn-block medical-btn">
+                                Compare Prices
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="popular-tests">
+                    <p class="popular-label">Popular tests — click to add:</p>
+                    <div class="test-chips">
+                        @foreach (var test in popularTests)
+                        {
+                            <button type="button"
+                                    class="btn btn-default btn-xs test-chip"
+                                    onclick="addTest('@test')">@test</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row medical-providers-row">
+            <div class="col-md-8 col-md-offset-2">
+                <h4 class="text-center providers-title">Providers We Compare</h4>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-3 text-center provider-card">
+                        <div class="provider-badge" style="background:#e53935;">1mg</div>
+                        <p>Tata 1mg</p>
+                    </div>
+                    <div class="col-xs-6 col-sm-3 text-center provider-card">
+                        <div class="provider-badge" style="background:#8e24aa;">PE</div>
+                        <p>PharmEasy</p>
+                    </div>
+                    <div class="col-xs-6 col-sm-3 text-center provider-card">
+                        <div class="provider-badge" style="background:#e65100;">OH</div>
+                        <p>Orange Health</p>
+                    </div>
+                    <div class="col-xs-6 col-sm-3 text-center provider-card">
+                        <div class="provider-badge" style="background:#1565c0;">A247</div>
+                        <p>Apollo 24*7</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    function addTest(testName) {
+        var textarea = document.getElementById('TestNames');
+        var current = textarea.value.trim();
+        if (current === '') {
+            textarea.value = testName;
+        } else {
+            // Avoid duplicates
+            var existing = current.split(',').map(function(t) { return t.trim().toLowerCase(); });
+            if (existing.indexOf(testName.toLowerCase()) === -1) {
+                textarea.value = current + ', ' + testName;
+            }
+        }
+        textarea.focus();
+    }
+</script>
+<style>
+    .medical-hero {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        padding: 60px 0 40px;
+        border-bottom: 1px solid #c8e6c9;
+    }
+    .medical-icon { margin-bottom: 20px; }
+    .medical-title {
+        font-size: 2.2em;
+        color: #2e7d32;
+        margin-bottom: 12px;
+    }
+    .medical-subtitle {
+        font-size: 1.1em;
+        color: #555;
+        max-width: 560px;
+        margin: 0 auto;
+    }
+    .medical-search { padding: 40px 0; }
+    .medical-panel { border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: none; }
+    .medical-panel .panel-body { padding: 30px; }
+    .medical-label { font-size: 1em; font-weight: 600; color: #333; }
+    .medical-textarea { resize: vertical; min-height: 80px; }
+    .medical-btn { background: #2e7d32; border-color: #1b5e20; font-size: 1.1em; margin-top: 8px; }
+    .medical-btn:hover { background: #1b5e20; }
+    .popular-tests { margin-top: 20px; }
+    .popular-label { color: #777; font-size: 0.9em; margin-bottom: 8px; }
+    .test-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .test-chip { border-radius: 20px; padding: 4px 12px; cursor: pointer; transition: all 0.2s; }
+    .test-chip:hover { background: #e8f5e9; border-color: #43a047; color: #2e7d32; }
+    .medical-providers-row { margin-top: 40px; }
+    .providers-title { color: #777; font-size: 0.95em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+    .provider-card { margin-bottom: 15px; }
+    .provider-badge {
+        width: 56px; height: 56px; border-radius: 12px;
+        color: #fff; font-weight: 700; font-size: 1em;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 8px;
+    }
+    .provider-card p { font-size: 0.85em; color: #555; margin: 0; }
+</style>
+}
