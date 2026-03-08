@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TailSpin.SpaceGame.Web.Models;
+using TailSpin.SpaceGame.Web.Services;
+using TailSpin.SpaceGame.Web.Services.Providers;
 using Microsoft.AspNetCore.Http;
 
 
@@ -37,6 +39,13 @@ namespace TailSpin.SpaceGame.Web
             // Add document stores. These are passed to the HomeController constructor.
             services.AddSingleton<IDocumentDBRepository<Score>>(new LocalDocumentDBRepository<Score>(@"SampleData/scores.json"));
             services.AddSingleton<IDocumentDBRepository<Profile>>(new LocalDocumentDBRepository<Profile>(@"SampleData/profiles.json"));
+
+            // Medical test price comparison services
+            services.AddSingleton<ILabTestPriceProvider, Tata1mgPriceProvider>();
+            services.AddSingleton<ILabTestPriceProvider, PharmEasyPriceProvider>();
+            services.AddSingleton<ILabTestPriceProvider, OrangeHealthPriceProvider>();
+            services.AddSingleton<ILabTestPriceProvider, Apollo247PriceProvider>();
+            services.AddSingleton<TestPriceComparisonService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,0 +1,211 @@
+@model TailSpin.SpaceGame.Web.Models.MedicalTest.ComparisonViewModel
+@{
+    ViewData["Title"] = "Price Comparison Results";
+}
+
+<section class="results-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <h2 class="results-title">
+                    Price Comparison Results
+                </h2>
+                <p class="results-subtitle">
+                    @Model.Results.Count test(s) compared in
+                    <strong>@Model.Query.Location</strong>
+                </p>
+            </div>
+            <div class="col-md-4 text-right">
+                <a asp-controller="MedicalTest" asp-action="Index" class="btn btn-default btn-search-again">
+                    Search Again
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="results-body">
+    <div class="container">
+
+        @if (!Model.HasResults)
+        {
+            <div class="alert alert-warning text-center">
+                <strong>No results found.</strong>
+                Please check your test names and try again.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive medical-table-wrap">
+                <table class="table table-bordered medical-table">
+                    <thead>
+                        <tr class="table-header-row">
+                            <th class="test-name-col">Test Name</th>
+                            @foreach (var provider in Model.ProviderNames)
+                            {
+                                <th class="provider-col text-center">@provider</th>
+                            }
+                            <th class="cheapest-col text-center">Cheapest</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Results)
+                        {
+                            var cheapest = row.CheapestProvider;
+                            <tr>
+                                <td class="test-name-cell">
+                                    <strong>@row.TestName</strong>
+                                </td>
+                                @foreach (var price in row.ProviderPrices)
+                                {
+                                    var isCheapest = cheapest != null
+                                        && price.IsAvailable
+                                        && price.ProviderName == cheapest.ProviderName
+                                        && price.Price == cheapest.Price;
+
+                                    <td class="price-cell text-center @(isCheapest ? "cheapest-cell" : "") @(!price.IsAvailable ? "unavailable-cell" : "")">
+                                        @if (price.IsAvailable)
+                                        {
+                                            <span class="price-amount">&#x20B9;@price.Price.ToString("N0")</span>
+                                            @if (isCheapest)
+                                            {
+                                                <br /><span class="cheapest-badge">CHEAPEST</span>
+                                            }
+                                            <br />
+                                            <a href="@price.BookingUrl" target="_blank" rel="noopener" class="book-link">Book</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="unavailable-text">Not Available</span>
+                                        }
+                                    </td>
+                                }
+                                <td class="cheapest-summary-cell text-center">
+                                    @if (cheapest != null)
+                                    {
+                                        <div class="cheapest-summary">
+                                            <span class="cheapest-provider-name">@cheapest.ProviderName</span>
+                                            <br />
+                                            <span class="cheapest-price">&#x20B9;@cheapest.Price.ToString("N0")</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="unavailable-text">N/A</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.TotalSavings > 0)
+            {
+                <div class="savings-banner">
+                    <span class="savings-icon" aria-hidden="true">&#x1F4B0;</span>
+                    You can save up to
+                    <strong>&#x20B9;@Model.TotalSavings.ToString("N0")</strong>
+                    by always choosing the cheapest provider!
+                </div>
+            }
+
+            <div class="disclaimer">
+                <small class="text-muted">
+                    * Prices shown are indicative and may vary. Actual prices depend on
+                    promotions, lab partner availability, and home collection charges.
+                    Always verify on the provider's website before booking.
+                </small>
+            </div>
+
+            <div class="search-again-bottom text-center">
+                <a asp-controller="MedicalTest" asp-action="Index" class="btn btn-primary">
+                    Compare More Tests
+                </a>
+            </div>
+        }
+
+    </div>
+</section>
+
+@section Scripts {
+<style>
+    .results-header {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        padding: 30px 0;
+        border-bottom: 1px solid #c8e6c9;
+        margin-bottom: 30px;
+    }
+    .results-title { color: #2e7d32; margin: 0 0 6px; }
+    .results-subtitle { color: #555; margin: 0; }
+    .btn-search-again { margin-top: 8px; }
+
+    .results-body { padding-bottom: 50px; }
+
+    .medical-table-wrap { margin-bottom: 20px; }
+    .medical-table { border-collapse: separate; border-spacing: 0; }
+    .medical-table thead th {
+        background: #2e7d32;
+        color: #fff;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 10px;
+        vertical-align: middle;
+    }
+    .test-name-col { width: 22%; min-width: 140px; }
+    .provider-col { width: 17%; }
+    .cheapest-col { width: 13%; background: #1b5e20 !important; }
+
+    .medical-table tbody td { padding: 14px 10px; vertical-align: middle; }
+    .test-name-cell { font-size: 0.95em; }
+
+    .price-cell { font-size: 0.95em; }
+    .price-amount { font-size: 1.1em; font-weight: 600; color: #333; }
+
+    .cheapest-cell {
+        background: #e8f5e9 !important;
+        border: 2px solid #43a047 !important;
+    }
+    .cheapest-badge {
+        display: inline-block;
+        background: #43a047;
+        color: #fff;
+        font-size: 0.65em;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-top: 2px;
+    }
+    .book-link {
+        font-size: 0.78em;
+        color: #1565c0;
+        text-decoration: underline;
+    }
+
+    .unavailable-cell { background: #fafafa !important; }
+    .unavailable-text { color: #bbb; font-size: 0.85em; }
+
+    .cheapest-summary-cell { background: #f9fbe7; font-size: 0.9em; }
+    .cheapest-provider-name { font-weight: 600; color: #2e7d32; font-size: 0.85em; }
+    .cheapest-price { font-size: 1.15em; font-weight: 700; color: #2e7d32; }
+
+    .savings-banner {
+        background: #fff9c4;
+        border: 1px solid #f9a825;
+        border-radius: 6px;
+        padding: 14px 20px;
+        text-align: center;
+        font-size: 1.05em;
+        color: #555;
+        margin-bottom: 16px;
+    }
+    .savings-icon { font-size: 1.2em; margin-right: 6px; }
+
+    .disclaimer { margin-bottom: 24px; }
+    .search-again-bottom { margin-top: 10px; }
+    .search-again-bottom .btn { background: #2e7d32; border-color: #1b5e20; }
+    .search-again-bottom .btn:hover { background: #1b5e20; }
+</style>
+}
